@@ -25,19 +25,26 @@ public class AuthService {
         }
 
         ZonedDateTime now = ZonedDateTime.now(parisZone);
-
         String timestamp = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd-HH:mm:ss"));
-        String nouveauToken = user.getUsername() + "-" + timestamp;
+        String rawToken = user.getUsername() + "-" + timestamp;
 
-        user.setCurrentToken(nouveauToken);
-        user.setTokenExpirationDate(now.plusHours(1).toLocalDateTime());
+        try {
 
-        userRepository.save(user);
+            String encryptedToken = AesUtils.encrypt(rawToken);
 
-        return new AuthResponse(nouveauToken, user.getUsername(), user.getTokenExpirationDate());
+            user.setCurrentToken(encryptedToken);
+            user.setTokenExpirationDate(now.plusHours(1).toLocalDateTime()); //
+
+            userRepository.save(user);
+
+            return new AuthResponse(encryptedToken, user.getUsername(), user.getTokenExpirationDate()); //
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors du cryptage du token");
+        }
     }
 
     public boolean verifyToken(String token) {
+
         Optional<UserEntity> userOpt = userRepository.findByCurrentToken(token);
 
         if (userOpt.isPresent()) {
