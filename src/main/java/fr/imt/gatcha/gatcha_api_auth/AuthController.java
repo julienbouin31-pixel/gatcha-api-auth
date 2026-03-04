@@ -3,6 +3,8 @@ package fr.imt.gatcha.gatcha_api_auth;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 public class AuthController {
@@ -16,12 +18,29 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try{
+            AuthResponse authResponse =  authService.login(request);
+            return ResponseEntity.ok(authResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "code", 401,
+                    "message", e.getMessage()
+            ));
+        }
     }
+
     @PostMapping("/verifyToken")
-    public boolean verifyToken(@RequestParam String token) {
-        return authService.verifyToken(token);
+    public ResponseEntity<?> verify(@RequestParam String token) {
+        try {
+            String username = authService.verifyToken(token);
+            return ResponseEntity.ok(Map.of("username", username));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "code", 401,
+                    "message", e.getMessage()
+            ));
+        }
     }
 
     @GetMapping("/me")

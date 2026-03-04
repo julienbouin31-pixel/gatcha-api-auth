@@ -43,24 +43,24 @@ public class AuthService {
         }
     }
 
-    public boolean verifyToken(String token) {
-
+    public String verifyToken(String token) {
         Optional<UserEntity> userOpt = userRepository.findByCurrentToken(token);
 
-        if (userOpt.isPresent()) {
-            UserEntity user = userOpt.get();
-            ZonedDateTime now = ZonedDateTime.now(parisZone);
-
-            if (now.toLocalDateTime().isAfter(user.getTokenExpirationDate())) {
-                System.out.println("Token expiré pour : " + user.getUsername());
-                return false;
-            }
-
-            user.setTokenExpirationDate(now.plusHours(1).toLocalDateTime());
-            userRepository.save(user);
-            return true;
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Veuillez vous connecter de nouveau.");
         }
 
-        return false;
+        UserEntity user = userOpt.get();
+        ZonedDateTime now = ZonedDateTime.now(parisZone);
+
+        if (now.toLocalDateTime().isAfter(user.getTokenExpirationDate())) {
+            throw new RuntimeException("Session expirée. Veuillez vous connecter de nouveau.");
+        }
+
+        user.setTokenExpirationDate(now.plusHours(1).toLocalDateTime());
+        userRepository.save(user);
+
+        return user.getUsername();
     }
+
 }
