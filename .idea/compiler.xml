@@ -9,9 +9,13 @@
         <module name="gatcha-api-auth" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="docker-compose.yml" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="docker-compose.yml" options="-parameters" />
       <module name="gatcha-api-auth" options="-parameters" />
     </option>
   </component>
